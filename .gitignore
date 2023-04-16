@@ -130,5 +130,7 @@ dmypy.json
 
 *.pdf
 *.html
+*.csv
 *.md
 !README.md
+*.ipynb

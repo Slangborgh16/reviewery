@@ -1,11 +1,13 @@
 import sys
 import os
 import argparse
+import pandas as pd
 from pathlib import Path
 
 
 def get_cmd_args():
-    parser = argparse.ArgumentParser(description='A tool for creating and organizing personal reviews on music, books, movies, or anything else!')
+    description: str = 'A tool for creating and organizing personal reviews on music, books, movies, or anything else!'
+    parser = argparse.ArgumentParser(description=description)
     commands = parser.add_subparsers(title='commands', dest='command', required=True)
     create_parser = commands.add_parser('create', help='create a new review database')
     generate_parser = commands.add_parser('generate', help='generate a PDF from the database and template files')
@@ -20,7 +22,7 @@ def get_cmd_args():
 
 
 def create(args: argparse.Namespace):
-    out_file = args.output_file.resolve()
+    out_file: Path = args.output_file.resolve()
     print(f'Creating reviews database "{out_file.name}" in "{out_file.parent}"\n')
     # print('Attributes are information about each review such as an album title, and author, a director, etc.')
     # print('Attributes can also be an image URL or path. All spaces in the attribute name are automatically replaced with underscores.')
@@ -28,7 +30,7 @@ def create(args: argparse.Namespace):
     # print('In the final PDF, these attribute tags will be replaced with text from the database.')
     # print('Example:\n\t{album}, {artist} --> "The Dark Side of the Moon, Pink Floyd"')
     print('Enter attribute names. Leave blank when finished.')
-    print('See README.md for information about attributes.\n')
+    print('See README.md for information about attributes.')
 
     num_attribute: int = 1
     attributes: list[str] = []
@@ -71,8 +73,14 @@ def create(args: argparse.Namespace):
             num_attribute += 1
             attributes.append(str(attr.replace(' ', '_')))
 
-    print(attributes)
-    print('Done')
+    df = pd.DataFrame(columns=attributes)
+    print(f'\nWriting database to "{out_file}"\n')
+
+    try:
+        df.to_csv(out_file)
+        print('Done')
+    except OSError as error:
+        print(f'Failed writing CSV to {out_file}:\n\t{error}')
     
 
 def generate(args: argparse.Namespace):
