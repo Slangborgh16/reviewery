@@ -10,11 +10,14 @@ def get_cmd_args():
     parser = argparse.ArgumentParser(description=description)
     commands = parser.add_subparsers(title='commands', dest='command', required=True)
     create_parser = commands.add_parser('create', help='create a new review database')
+    add_parser = commands.add_parser('add', help='add a new entry to an existing review database')
     generate_parser = commands.add_parser('generate', help='generate a PDF from the database and template files')
 
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose output')
 
     create_parser.add_argument('output_file', type=Path, help='output database CSV file path')
+
+    add_parser.add_argument('database_file', type=Path, help='path to existing review database file')
 
     generate_parser.add_argument('output_file', nargs='?', default='./reviews.pdf', type=Path, help='output PDF file path (default: %(default)s)')
 
@@ -73,15 +76,38 @@ def create(args: argparse.Namespace):
             num_attribute += 1
             attributes.append(str(attr.replace(' ', '_')))
 
+    attributes.append('entry_page')
     df = pd.DataFrame(columns=attributes)
-    print(f'\nWriting database to "{out_file}"\n')
+    print(f'\nWriting database to "{out_file}"')
 
     try:
-        df.to_csv(out_file)
+        df.to_csv(out_file, index=False)
         print('Done')
     except OSError as error:
         print(f'Failed writing CSV to {out_file}:\n\t{error}')
     
+
+def add_entry(args: argparse.Namespace):
+    db_file: Path = args.database_file.resolve()
+    print(f'Opening {db_file}\n')
+
+    if not db_file.exists():
+        print('Database file does not exist.')
+        print('Quitting...')
+        return
+
+    df = pd.read_csv(db_file)
+
+    print('Enter values for each attribute.')
+
+    new_entry = []
+    for attr in list(df.keys()):
+        val = input(f'{attr}: ')
+        new_entry.append(val)
+
+    df.loc[len(df.index)] = new_entry
+    df.to_csv(db_file, index=False)
+
 
 def generate(args: argparse.Namespace):
     print('Generate!')
@@ -95,6 +121,8 @@ if __name__ == '__main__':
         match args.command:
             case 'create':
                 create(args)
+            case 'add':
+                add_entry(args)
             case 'generate':
                 generate(args)
                 
