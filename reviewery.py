@@ -96,17 +96,26 @@ def add_entry(args: argparse.Namespace):
         print('Quitting...')
         return
 
-    df = pd.read_csv(db_file)
+    try:
+        df = pd.read_csv(db_file)
+    except OSError as error:
+        print(f'Error opening {db_file}:\n\t{error}')
 
-    print('Enter values for each attribute.')
+    while True:
+        print('Enter values for each attribute.')
+        new_entry = []
+        
+        for attr in list(df.keys()):
+            val = input(f'{attr}: ')
+            new_entry.append(val)
 
-    new_entry = []
-    for attr in list(df.keys()):
-        val = input(f'{attr}: ')
-        new_entry.append(val)
+        df.loc[len(df.index)] = new_entry
+        df.to_csv(db_file, index=False)
 
-    df.loc[len(df.index)] = new_entry
-    df.to_csv(db_file, index=False)
+        choice = input('Added entry. Would you like to add another? (Y/n): ')
+
+        if choice in ('n', 'N', 'no'):
+            break
 
 
 def generate(args: argparse.Namespace):
