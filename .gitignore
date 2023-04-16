@@ -134,3 +134,4 @@ dmypy.json
 *.md
 !README.md
 *.ipynb
+*.xlsx
