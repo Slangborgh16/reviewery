@@ -154,6 +154,11 @@ def generate(args: argparse.Namespace):
         review_md: str = template
         for attr in list(df.keys()):
             review_md = review_md.replace(f'{{{attr}}}', review[attr])
+        
+        if Path(review['entry_page']).exists():
+            with open(Path(review['entry_page'])) as f:
+                review_md += '\n\n'
+                review_md += f.read()
         doc += md.markdown(review_md)
 
     css = weasyprint.CSS(string='body { font-family: calibri }')
